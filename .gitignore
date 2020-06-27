@@ -1,0 +1,12 @@
+*.pth
+*.pt
+*venv*
+*__pycache__*
+*.pyc
+*.torch
+*tfevents*
+temp/
+.ipynb_checkpoints/
+.vector_cache/
+.logs/
+.idea/
