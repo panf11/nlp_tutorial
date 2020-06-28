@@ -4,7 +4,6 @@ import numpy as np
 import torch
 import torch.nn as nn
 import time
-# import torch.nn.functional as F
 import torch.optim as optim
 
 from torch.utils.tensorboard import SummaryWriter
@@ -14,7 +13,6 @@ from sklearn.metrics import roc_auc_score
 from transformers import BertTokenizer, BertModel
 from training.meters import AverageMeter
 from tqdm import tqdm
-
 
 writer = SummaryWriter(log_dir='logs')
 bert = BertModel.from_pretrained('bert-base-uncased')
@@ -300,31 +298,8 @@ if __name__ == '__main__':
     train_dl = BatchWrapper(train_iter, "comment_text", ["toxic", "severe_toxic", "obscene", "threat", "insult",
                                                          "identity_hate"])
     valid_dl = BatchWrapper(val_iter, "comment_text", ["toxic", "severe_toxic", "obscene", "threat", "insult",
-                                                         "identity_hate"])
+                                                       "identity_hate"])
     test_dl = BatchWrapper(test_iter, "comment_text", None)
-
-    # INPUT_DIM = len(TEXT.vocab)
-    # EMBEDDING_DIM = 100
-    # HIDDEN_DIM = 256
-    # OUTPUT_DIM = 6
-    # N_LAYERS = 2
-    # BIDIRECTIONAL = True
-    # DROPOUT = 0.5
-    # PAD_IDX = TEXT.vocab.stoi[TEXT.pad_token]
-    # model = BILSTM(INPUT_DIM,
-    #                EMBEDDING_DIM,
-    #                HIDDEN_DIM,
-    #                OUTPUT_DIM,
-    #                N_LAYERS,
-    #                BIDIRECTIONAL,
-    #                DROPOUT,
-    #                PAD_IDX)
-    # pretrained_embeddings = TEXT.vocab.vectors
-    # model.embedding.weight.data.copy_(pretrained_embeddings)
-    # # UNK_IDX = TEXT.vocab.stoi[TEXT.unk_token]
-    # model.embedding.weight.data[UNK_IDX] = torch.zeros(EMBEDDING_DIM)
-    # model.embedding.weight.data[PAD_IDX] = torch.zeros(EMBEDDING_DIM)
-    # print(model.embedding.weight.data)
 
     HIDDEN_DIM = 256
     OUTPUT_DIM = 6
