@@ -4,7 +4,6 @@ import numpy as np
 import torch
 import torch.nn as nn
 import time
-import tqdm
 # import torch.nn.functional as F
 import torch.optim as optim
 
@@ -14,6 +13,7 @@ from torchtext.data import Iterator, BucketIterator
 from sklearn.metrics import roc_auc_score
 from transformers import BertTokenizer, BertModel
 from training.meters import AverageMeter
+from tqdm import tqdm
 
 
 writer = SummaryWriter(log_dir='logs')
@@ -162,7 +162,7 @@ def train_epoch(model, iterator, optimizer, criterion, cur_epoch):
     losses = AverageMeter()
     epoch_loss = 0.
     epoch_acc = 0.
-    running_loss = 0.
+    # running_loss = 0.
     iterator = tqdm(iterator)
 
     model.train()
@@ -202,13 +202,13 @@ def evaluate(model, iterator, criterion, cur_epoch):
     losses = AverageMeter()
     epoch_loss = 0
     epoch_acc = 0
-
+    iterator = tqdm(iterator)
     model.eval()
 
     preds = torch.Tensor().cuda()
     y_true = torch.Tensor().cuda()
     with torch.no_grad():
-        for x, y in iterator:
+        for i, [x, y] in enumerate(iterator):
             # predictions = model(batch.x).squeeze(1)
             predictions = model(x)
             loss = criterion(predictions, y)
@@ -271,6 +271,7 @@ if __name__ == '__main__':
     SEED = 1
     BATCH_SIZE = 64
 
+    torch.cuda.empty_cache()
     data_dir = '/media/feng/storage/Downloads/jigsaw'
     train_data = data.TabularDataset(path=os.path.join(data_dir, 'train.csv'),
                                      format='csv', skip_header=True, fields=trainval_datafields)
@@ -289,13 +290,17 @@ if __name__ == '__main__':
     train_iter, val_iter = BucketIterator.splits((train_data, valid_data),
                                                  batch_sizes=(BATCH_SIZE, BATCH_SIZE),
                                                  device=torch.device("cuda"),
+                                                 sort_key=lambda x: len(x.comment_text),
+                                                 # the BucketIterator needs to be told what function it should use to group the data.
+                                                 sort_within_batch=False,
+                                                 repeat=False
                                                  )
     test_iter = Iterator(test_data, batch_size=BATCH_SIZE, device=torch.device("cuda:0"))
 
     train_dl = BatchWrapper(train_iter, "comment_text", ["toxic", "severe_toxic", "obscene", "threat", "insult",
                                                          "identity_hate"])
     valid_dl = BatchWrapper(val_iter, "comment_text", ["toxic", "severe_toxic", "obscene", "threat", "insult",
-                                                       "identity_hate"])
+                                                         "identity_hate"])
     test_dl = BatchWrapper(test_iter, "comment_text", None)
 
     # INPUT_DIM = len(TEXT.vocab)
@@ -344,7 +349,7 @@ if __name__ == '__main__':
     model.cuda()
     optimizer = optim.Adam(model.parameters())
     criterion = nn.BCEWithLogitsLoss()
-    N_EPOCHS = 100
+    N_EPOCHS = 4
 
     best_valid_loss = float('inf')
 
